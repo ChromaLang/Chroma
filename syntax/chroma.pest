@@ -1,0 +1,94 @@
+/// Setup inbuilt comment and whitespace handling
+COMMENT = _{ "/*" ~ (!"*/" ~ ANY)* ~ "*/" | "//" ~ (!"\n" ~ ANY)* ~ "\n" }
+WHITESPACE = _{" " | "\t" | "\n" | "\r"}
+
+/// Constants
+// Unary Operators
+UNARY_OPERATOR = { "-" | "*" | "&" | "!" | "~" }
+
+/// Literals
+// Literal
+Literal = {
+    Name
+  | Boolean
+  | UnitValue
+}
+// Names are used for variables and types
+Name = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+// Boolean
+Boolean = { "true" | "false" }
+// Unit
+UnitValue = { "()" }
+
+
+
+/// Code Block
+CodeBlock = {
+	"{"
+    ~ (Statement ~ ";")*
+    ~ "}"
+}
+
+/// Types
+// Type Identifiers
+TypeIdent = { 
+    Name 
+  | PointerType
+  | FunctionType
+  | UnitType
+}
+
+// Pointer Type
+PointerType = @{ Name ~ "*" }
+
+// Function type
+// (type_a, type_b) -> return_type
+FunctionType = { "(" ~ (TypeIdent ~ ("," ~ TypeIdent)* ~ ","?)? ~ ")" ~ "->" ~ TypeIdent}
+
+// Unit is effectively the null or void type/value
+UnitType = { "()" }
+
+// This is a name and type combination
+Ident = {Name ~ ":" ~ TypeIdent}
+
+/// Expressions
+// Expression
+// Literals are expressions
+Expression = {
+	FuncExpression
+  | Literal
+}
+
+// Function expression
+FuncExpression = {
+	"("
+    ~ (Ident ~ ("," ~ Ident)* ~ ","?)?
+    ~ ")"
+    ~ "->"
+    ~ Name
+    ~ CodeBlock
+}
+
+/// Statements
+// Statement
+Statement = {
+	LetStatement
+  | ReturnStatement 
+}
+
+// Let statement
+LetStatement = {
+	"let"
+    ~ Name ~ (":" ~ TypeIdent)?
+    ~ "="
+    ~ Expression
+}
+
+// Return statement
+ReturnStatement = { 
+	"return"
+    ~ Expression
+}
+
+/// File handler
+file = _{SOI ~ (Statement ~ ";")* ~ EOI}
